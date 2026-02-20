@@ -8,6 +8,9 @@ routing:
   reasoning: gpt-4o
   tool_use: gpt-4o
   default: gpt-4o-mini
+  # Claude models (set claude_code_token in setup, use at your own risk):
+  # code_gen: claude-sonnet-4-20250514
+  # reasoning: claude-3-5-sonnet-20241022
 
 # Ollama (optional - disabled by default)
 ollama:

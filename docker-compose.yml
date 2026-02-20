@@ -9,5 +9,5 @@ services:
     volumes:
       - ./data:/app/data
       - ./config:/app/config
-    env_file: .env
+    # Config from config/settings.yaml (run setup first)
     restart: unless-stopped

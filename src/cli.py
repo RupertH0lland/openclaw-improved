@@ -83,7 +83,8 @@ def cmd_setup(prefix: str) -> None:
         settings["secrets"] = {}
     print("\n--- API Keys (press Enter to skip) ---")
     settings["secrets"]["openai_api_key"] = _prompt("OpenAI API key", settings["secrets"].get("openai_api_key", ""), secret=True)
-    settings["secrets"]["anthropic_api_key"] = _prompt("Anthropic API key", settings["secrets"].get("anthropic_api_key", ""), secret=True)
+    print("  Claude Code / Anthropic token (use at your own risk):")
+    settings["secrets"]["claude_code_token"] = _prompt("  Claude/Anthropic API key", settings["secrets"].get("claude_code_token", "") or settings["secrets"].get("anthropic_api_key", ""), secret=True)
 
     # Dashboard
     settings.setdefault("dashboard", {})

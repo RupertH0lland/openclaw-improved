@@ -1,9 +1,6 @@
-"""Core orchestrator - routes tasks, calls LLM, has file/API access."""
-import os
+"""Core orchestrator - routes tasks, calls LLM (OpenAI, Claude, Ollama), has file/API access."""
 from pathlib import Path
 from typing import AsyncGenerator
-
-from openai import AsyncOpenAI
 
 from src.config import get_env, load_config
 from src.message_bus import MessageBus
@@ -26,7 +23,6 @@ class Orchestrator:
         if not self.output_dir.is_absolute():
             self.output_dir = self.root / self.output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self._client: AsyncOpenAI | None = None
         self._model = self.models_config.routing.get("default", "gpt-4o-mini")
         self._router: AgentRouter | None = None
         self._cache = ResponseCache(data_dir / "response_cache.db", ttl_seconds=3600)
@@ -40,14 +36,6 @@ class Orchestrator:
         if self._router is None:
             self._router = AgentRouter(self.root, self.message_bus)
         return self._router
-
-    @property
-    def client(self) -> AsyncOpenAI:
-        if self._client is None:
-            if not self.env.openai_api_key:
-                raise ValueError("OPENAI_API_KEY not set in .env")
-            self._client = AsyncOpenAI(api_key=self.env.openai_api_key)
-        return self._client
 
     def _system_prompt(self) -> str:
         return """You are an AI orchestrator with access to the user's device. You can:
@@ -103,34 +91,23 @@ The user will send you messages. Respond appropriately."""
                 yield cached
                 return
         try:
+            from src.models.llm_client import complete
+            gen_or_resp = await complete(self.root, self._model, messages, stream=stream)
             if stream:
-                stream_resp = await self.client.chat.completions.create(
-                    model=self._model,
-                    messages=messages,
-                    stream=True,
-                )
-                async for chunk in stream_resp:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        token = chunk.choices[0].delta.content
-                        full_response += token
-                        yield token
+                async for token in gen_or_resp:
+                    full_response += token
+                    yield token
                 inp_est = sum(len(m.get("content", "")) for m in messages) // 4
                 out_est = len(full_response) // 4
                 self._cost_tracker.log("orchestrator", self._model, max(1, inp_est), max(1, out_est))
             else:
-                resp = await self.client.chat.completions.create(
-                    model=self._model,
-                    messages=messages,
+                full_response = gen_or_resp or ""
+                self._cost_tracker.log(
+                    "orchestrator",
+                    self._model,
+                    sum(len(m.get("content", "")) for m in messages) // 4,
+                    len(full_response) // 4,
                 )
-                full_response = resp.choices[0].message.content or ""
-                usage = getattr(resp, "usage", None)
-                if usage:
-                    self._cost_tracker.log(
-                        "orchestrator",
-                        self._model,
-                        getattr(usage, "prompt_tokens", 0),
-                        getattr(usage, "completion_tokens", 0),
-                    )
                 self._cache.set(self._model, messages, full_response)
                 yield full_response
         except Exception as e:

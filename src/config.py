@@ -18,7 +18,11 @@ class Settings:
                 data = yaml.safe_load(f) or {}
             secrets = data.get("secrets", {})
         self.openai_api_key = secrets.get("openai_api_key") or os.getenv("OPENAI_API_KEY", "")
-        self.anthropic_api_key = secrets.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY", "")
+        self.anthropic_api_key = (
+            secrets.get("claude_code_token")
+            or secrets.get("anthropic_api_key")
+            or os.getenv("ANTHROPIC_API_KEY", "")
+        )
         self.telegram_bot_token = secrets.get("telegram_bot_token") or os.getenv("TELEGRAM_BOT_TOKEN", "")
 
 

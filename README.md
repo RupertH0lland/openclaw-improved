@@ -63,6 +63,7 @@ No Ollama. Set `ollama.enabled: false`. All inference via OpenAI/Anthropic.
 
 ## Features
 
+- **Claude / Claude Code**: Add your Anthropic/Claude API key during setup. Route tasks to Claude models in `config/models.yaml` (e.g. `default: claude-3-5-sonnet-20241022`). Use at your own risk.
 - **Dashboard**: Chat, agent monitor, file browser, health, cost tracking
 - **Telegram**: Optional bot for remote chat
 - **Sub-agents**: Enable `use_subagents: true` for task routing
