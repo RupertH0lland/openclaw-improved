@@ -1,0 +1,13 @@
+# Optional Docker deployment
+# Run: docker-compose up -d
+version: "3"
+services:
+  orchestrator:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    env_file: .env
+    restart: unless-stopped

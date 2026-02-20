@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AI Orchestrator Dashboard</title>
+</head>
+<body>
+    <h1>AI Orchestrator</h1>
+    <p><a href="/logout">Logout</a></p>
+    <hr>
+    <h2>Chat</h2>
+    <form id="chat-form">
+        <input type="text" id="message" placeholder="Message" size="60">
+        <button type="submit">Send</button>
+    </form>
+    <div id="response" style="margin-top:1em; white-space:pre-wrap;"></div>
+    <hr>
+    <h2>Health</h2>
+    <div id="health">-</div>
+    <h2>Files</h2>
+    <div id="files"><a href="/api/files">Browse output files</a></div>
+    <hr>
+    <h2>Cost</h2>
+    <div id="cost">-</div>
+    <hr>
+    <h2>Agents</h2>
+    <div id="agents">-</div>
+    <hr>
+    <h2>Message Log</h2>
+    <div id="messages"></div>
+    <script>
+        const form = document.getElementById('chat-form');
+        const msgInput = document.getElementById('message');
+        const responseEl = document.getElementById('response');
+        const messagesEl = document.getElementById('messages');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const msg = msgInput.value.trim();
+            if (!msg) return;
+            responseEl.textContent = '...';
+            try {
+                const fd = new FormData();
+                fd.append('message', msg);
+                const r = await fetch('/api/chat', { method: 'POST', body: fd });
+                const j = await r.json();
+                responseEl.textContent = j.response || '(No response)';
+                loadMessages();
+                loadAgents();
+                loadCost();
+                loadHealth();
+            } catch (err) {
+                responseEl.textContent = 'Error: ' + err;
+            }
+        };
+
+        async function loadCost() {
+            try {
+                const r = await fetch('/api/cost');
+                const j = await r.json();
+                document.getElementById('cost').textContent =
+                    `Daily: $${j.daily_usd.toFixed(4)} | Monthly: $${j.monthly_usd.toFixed(2)}`;
+            } catch (_) { document.getElementById('cost').textContent = '-'; }
+        }
+        async function loadAgents() {
+            try {
+                const r = await fetch('/api/agents');
+                const j = await r.json();
+                document.getElementById('agents').innerHTML = j.agents.length
+                    ? j.agents.map(a => `${a.id}: ${a.status}`).join(', ')
+                    : 'No sub-agents (use_subagents disabled)';
+            } catch (_) { document.getElementById('agents').textContent = '-'; }
+        }
+        async function loadMessages() {
+            try {
+                const r = await fetch('/api/messages?limit=50');
+                const j = await r.json();
+                messagesEl.innerHTML = j.messages.map(m =>
+                    `<div><small>${m.timestamp} [${m.source}→${m.target}] ${m.role}:</small> ${m.content.substring(0, 200)}${m.content.length > 200 ? '...' : ''}</div>`
+                ).join('');
+            } catch (err) {
+                messagesEl.textContent = 'Failed to load messages';
+            }
+        }
+        loadMessages();
+        loadAgents();
+        loadCost();
+        loadHealth();
+    </script>
+</body>
+</html>

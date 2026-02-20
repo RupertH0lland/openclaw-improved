@@ -1,0 +1,18 @@
+# Model Routing Configuration
+# Route task types to specific models
+
+routing:
+  classify: gpt-4o-mini
+  summarize: gpt-4o-mini
+  code_gen: gpt-4o
+  reasoning: gpt-4o
+  tool_use: gpt-4o
+  default: gpt-4o-mini
+
+# Ollama (optional - disabled by default)
+ollama:
+  enabled: false
+  base_url: http://localhost:11434
+  models:
+    - llama3.2
+    - codellama

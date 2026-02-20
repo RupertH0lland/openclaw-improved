@@ -1,0 +1,36 @@
+# AI Orchestrator - Main Settings
+# Copy to settings.yaml and configure for your deployment
+
+# Data paths (relative to project root or absolute)
+data_dir: ./data
+output_dir: ./data/output
+use_subagents: false
+
+# Dashboard
+dashboard:
+  enabled: true
+  host: 127.0.0.1
+  port: 8000
+  password_hash: ""  # Set via setup wizard; bcrypt hash
+
+# Telegram (optional)
+telegram:
+  enabled: false
+  bot_token: ""
+
+# Model backends (configure in models.yaml)
+# Ollama optional - set enabled: true to use
+# Cloud APIs - add keys to .env
+
+# Resource limits (optional)
+resource_limits:
+  enabled: false
+  max_concurrent_agents: 10
+  max_tokens_per_request: 4096
+  max_file_size_mb: 50
+
+# Budget caps (optional)
+budget:
+  enabled: false
+  daily_usd: 10.0
+  monthly_usd: 100.0

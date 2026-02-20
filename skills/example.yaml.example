@@ -1,0 +1,6 @@
+# Example skill - copy to example.yaml and add API keys
+name: example
+description: Example skill
+api_keys:
+  - EXAMPLE_API_KEY
+enabled: true
